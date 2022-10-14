@@ -1,0 +1,48 @@
+       pipeline {
+         agent any
+
+         stages {
+           stage('Git') {
+             steps {
+               echo 'Hello World'
+               git credentialsId: 'BotasOtomasyon', url: 'https://github.com/sule88/SHM_WEB'
+             }
+           }
+
+           stage('Clean and Built') {
+             steps {
+               bat "cd C:/ProgramData/Jenkins/.jenkins/workspace/SHM"
+               bat " mvn clean"
+               bat "mvn compile"
+               bat "mvn validate"
+             }
+           }
+
+           stage('Test') {
+             steps {
+               bat "cd C:/ProgramData/Jenkins/.jenkins/workspace/SHM"
+               bat 'mvn test surefire-report:report site'
+
+             }
+           }
+           stage('Report') {
+             steps {
+               publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'C:\\ProgramData\\Jenkins\\.jenkins\\workspace\\SHM\\target\\site', reportFiles: 'surefire-report.html', reportName: 'HTML Report', reportTitles: ''])
+
+             }
+           }
+
+           stage('Mail') {
+                        steps {
+                                emailext body: '''$PROJECT_NAME - Build # $BUILD_NUMBER
+
+                                SHM Test Raporu ${BUILD_URL}HTML_20Report/ adresinden incelenebilir.
+                                Username : botas
+                                Password  : botas1234''', subject: 'Test Report', to: 'mert.sen@basarsoft.com.tr, testteam@basarsoft.com.tr, huseyin.arslan@basarsoft.com.tr, sule.hasdeniz@basarsoft.com.tr, hakan.beyhan@basarsoft.com.tr, caglayan@basarsoft.com.tr'
+                        }
+                      }
+
+
+
+         }
+       }
